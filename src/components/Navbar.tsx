@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, List, Flame, User, FlameIcon } from 'lucide-react';
+import { Home, List, Flame, User, FlameIcon, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -59,6 +59,11 @@ export default function Navbar() {
               </Link>
             );
           })}
+          
+          <Link href="/premium" className="flex items-center gap-2 px-4 py-2 ml-2 rounded-full text-sm font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:opacity-90 transition-opacity shadow-lg shadow-orange-500/20">
+            <Sparkles size={16} />
+            <span className="hidden sm:inline">Premium</span>
+          </Link>
         </div>
       </div>
     </nav>

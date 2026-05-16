@@ -10,6 +10,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [budgetLimit, setBudgetLimit] = useState('10000');
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
@@ -31,6 +32,7 @@ export default function Profile() {
       if (data) {
         setProfile(data);
         setWhatsappNumber(data.whatsapp_number || '');
+        setBudgetLimit(data.budget_limit?.toString() || '10000');
       }
       setLoading(false);
     }
@@ -48,11 +50,12 @@ export default function Profile() {
         .upsert({ 
           id: session.user.id, 
           whatsapp_number: whatsappNumber,
+          budget_limit: Number(budgetLimit),
           username: session.user.user_metadata?.full_name,
           avatar_url: session.user.user_metadata?.avatar_url
         });
         
-      setProfile({ ...profile, whatsapp_number: whatsappNumber });
+      setProfile({ ...profile, whatsapp_number: whatsappNumber, budget_limit: Number(budgetLimit) });
     }
     setSaving(false);
   };
@@ -106,6 +109,26 @@ export default function Profile() {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-2">Enter your number exactly as WhatsApp formats it without the + symbol. This links your messages to this dashboard.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">Monthly Budget Limit (Premium)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <span className="text-gray-400 font-bold">LKR</span>
+                </div>
+                <input 
+                  type="number" 
+                  placeholder="e.g. 15000" 
+                  className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-14 pr-4 py-3 focus:outline-none focus:border-red-500 transition-colors"
+                  value={budgetLimit}
+                  onChange={(e) => setBudgetLimit(e.target.value)}
+                  disabled={!profile?.is_premium}
+                />
+              </div>
+              {!profile?.is_premium && (
+                <p className="text-xs text-orange-500 mt-2">Upgrade to Premium to set a custom budget limit.</p>
+              )}
             </div>
             <button 
               type="submit" 

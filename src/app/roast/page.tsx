@@ -11,6 +11,7 @@ export default function RoastPage() {
   const [roast, setRoast] = useState('');
   const [isRoasting, setIsRoasting] = useState(false);
   const [transactionsLength, setTransactionsLength] = useState(0);
+  const [roastsRemaining, setRoastsRemaining] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,8 +38,40 @@ export default function RoastPage() {
     load();
   }, [router]);
 
+  useEffect(() => {
+    if (profile && !profile.is_premium) {
+      const today = new Date().toDateString();
+      const stored = JSON.parse(localStorage.getItem('roast_data') || '{"date": "", "count": 0}');
+      if (stored.date !== today) {
+        setRoastsRemaining(3);
+      } else {
+        setRoastsRemaining(Math.max(0, 3 - stored.count));
+      }
+    }
+  }, [profile]);
+
   const handleRoast = async () => {
     if (!profile?.whatsapp_number) return;
+
+    if (!profile.is_premium) {
+      const today = new Date().toDateString();
+      const stored = JSON.parse(localStorage.getItem('roast_data') || '{"date": "", "count": 0}');
+      
+      if (stored.date !== today) {
+        stored.date = today;
+        stored.count = 0;
+      }
+      
+      if (stored.count >= 3) {
+        alert("You have reached your daily limit of 3 free roasts! Upgrade to Premium for unlimited roasts.");
+        return;
+      }
+      
+      stored.count += 1;
+      localStorage.setItem('roast_data', JSON.stringify(stored));
+      setRoastsRemaining(3 - stored.count);
+    }
+
     setIsRoasting(true);
     try {
       const res = await fetch('/api/roast', {
@@ -84,7 +117,7 @@ export default function RoastPage() {
           
           <button 
             onClick={handleRoast}
-            disabled={isRoasting || transactionsLength === 0}
+            disabled={isRoasting || transactionsLength === 0 || (roastsRemaining === 0 && !profile.is_premium)}
             className="w-full relative z-10 bg-white hover:bg-gray-200 text-black font-extrabold py-5 px-6 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl text-lg"
           >
             {isRoasting ? (
@@ -95,6 +128,11 @@ export default function RoastPage() {
               <>
                 <Flame size={20} /> 
                 {roast ? "Roast Me Again" : "Generate Roast"}
+                {profile && !profile.is_premium && roastsRemaining !== null && (
+                  <span className="ml-2 bg-orange-500/20 text-orange-600 px-3 py-1 rounded-full text-sm">
+                    {roastsRemaining} left today
+                  </span>
+                )}
               </>
             )}
           </button>

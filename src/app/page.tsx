@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Flame, AlertCircle, TrendingDown, Coffee, ShoppingBag, Home, FileText, ArrowRight, User, Plus } from 'lucide-react';
+import { Flame, AlertCircle, TrendingDown, Coffee, ShoppingBag, Home, FileText, ArrowRight, User, Plus, Lock, Sparkles, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
 
 export default function Dashboard() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -114,6 +115,18 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const totalSpent = currentMonthTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const categoryData = currentMonthTransactions.reduce((acc: any[], t) => {
+    const existing = acc.find((c) => c.name === t.category);
+    if (existing) existing.value += Number(t.amount);
+    else acc.push({ name: t.category, value: Number(t.amount) });
+    return acc;
+  }, []);
+  const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
+
+  const budgetLimit = profile?.budget_limit || 15000;
+  const budgetPercent = Math.min((totalSpent / budgetLimit) * 100, 100);
+  const isPremium = profile?.is_premium;
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -246,6 +259,95 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Premium Features Section */}
+            <div className="pt-8 relative">
+              {!isPremium && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030303]/60 backdrop-blur-md rounded-[2.5rem] border border-white/5 shadow-2xl">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 mb-6">
+                    <Lock size={32} className="text-black" />
+                  </div>
+                  <h3 className="text-3xl font-black tracking-tight mb-3">Unlock Premium Insights</h3>
+                  <p className="text-gray-400 mb-8 max-w-md text-center">Get visual category breakdowns, custom budget limits, and AI-powered cost-cutting advisor.</p>
+                  <button className="bg-white text-black px-8 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-white/10">
+                    <Sparkles size={18} /> Upgrade with PayPal
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative z-10">
+                {/* Visual Category Graphs */}
+                <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="p-3 bg-blue-500/10 rounded-xl"><PieChartIcon size={20} className="text-blue-500" /></div>
+                    <h3 className="text-xl font-bold">Spending by Category</h3>
+                  </div>
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
+                          {categoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#333', borderRadius: '1rem' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex flex-wrap gap-3 mt-4 justify-center">
+                    {categoryData.map((c, i) => (
+                      <div key={c.name} className="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1.5 rounded-full">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
+                        {c.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Budget Limit Tracker */}
+                  <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-green-500/10 rounded-xl"><TrendingUp size={20} className="text-green-500" /></div>
+                        <h3 className="text-xl font-bold">Monthly Budget</h3>
+                      </div>
+                      <span className="text-sm font-bold text-gray-400">{totalSpent.toLocaleString()} / {budgetLimit.toLocaleString()} LKR</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-4 overflow-hidden mb-2">
+                      <div 
+                        className={`h-4 rounded-full transition-all duration-1000 ${budgetPercent > 90 ? 'bg-red-500' : budgetPercent > 70 ? 'bg-orange-500' : 'bg-green-500'}`}
+                        style={{ width: `${budgetPercent}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 font-medium text-right">
+                      {budgetPercent >= 100 ? "You're over budget!" : `${(100 - budgetPercent).toFixed(1)}% remaining`}
+                    </p>
+                  </div>
+
+                  {/* AI Cost Cut Advisor */}
+                  <div className="bg-gradient-to-br from-purple-900/20 to-[#0A0A0A] border border-purple-500/20 rounded-[2rem] p-8 flex-1 h-[calc(100%-150px)]">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-3 bg-purple-500/10 rounded-xl"><Sparkles size={20} className="text-purple-400" /></div>
+                      <h3 className="text-xl font-bold text-purple-100">AI Advisor</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-black/40 border border-purple-500/10 rounded-xl">
+                        <p className="text-sm text-gray-300 leading-relaxed font-light">
+                          "You spent <strong className="text-white">45%</strong> of your income on <strong className="text-white">Dining Out</strong> this week. Cooking your own meals for the next 3 days will save you approximately <strong className="text-green-400">4,500 LKR</strong>, bringing you back under your budget limit."
+                        </p>
+                      </div>
+                      <div className="p-4 bg-black/40 border border-purple-500/10 rounded-xl">
+                        <p className="text-sm text-gray-300 leading-relaxed font-light">
+                          "I noticed recurring minor leakage in <strong className="text-white">Shopping</strong>. Implement the 24-hour rule before making your next non-essential purchase to reduce your monthly leakage by 20%."
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
       </div>
