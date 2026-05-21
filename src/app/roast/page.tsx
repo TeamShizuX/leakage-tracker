@@ -77,7 +77,7 @@ export default function RoastPage() {
       const res = await fetch('/api/roast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: profile.whatsapp_number })
+        body: JSON.stringify({ userId: profile.whatsapp_number, profileId: profile.id })
       });
       const data = await res.json();
       setRoast(data.roast);

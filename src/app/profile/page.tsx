@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, User, Phone, Save, LogOut } from 'lucide-react';
+import { ArrowLeft, User, Phone, Save, LogOut, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
   const [budgetLimit, setBudgetLimit] = useState('10000');
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function Profile() {
       if (data) {
         setProfile(data);
         setWhatsappNumber(data.whatsapp_number || '');
+        setTelegramChatId(data.telegram_chat_id || '');
         setBudgetLimit(data.budget_limit?.toString() || '10000');
       }
       setLoading(false);
@@ -50,12 +52,13 @@ export default function Profile() {
         .upsert({ 
           id: session.user.id, 
           whatsapp_number: whatsappNumber,
+          telegram_chat_id: telegramChatId,
           budget_limit: Number(budgetLimit),
           username: session.user.user_metadata?.full_name,
           avatar_url: session.user.user_metadata?.avatar_url
         });
         
-      setProfile({ ...profile, whatsapp_number: whatsappNumber, budget_limit: Number(budgetLimit) });
+      setProfile({ ...profile, whatsapp_number: whatsappNumber, telegram_chat_id: telegramChatId, budget_limit: Number(budgetLimit) });
     }
     setSaving(false);
   };
@@ -92,27 +95,46 @@ export default function Profile() {
           )}
           <h2 className="text-2xl font-bold">{profile?.username || 'User'}</h2>
           
-          <form onSubmit={handleSave} className="w-full mt-8 space-y-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">WhatsApp Number</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Phone size={16} className="text-gray-400" />
+          <form onSubmit={handleSave} className="w-full mt-8 space-y-6">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">WhatsApp Number</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Phone size={16} className="text-green-500" />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 94764392015" 
+                    className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-green-500 transition-colors"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                  />
                 </div>
-                <input 
-                  type="text" 
-                  placeholder="e.g. 94764392015" 
-                  className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-red-500 transition-colors"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
-                  required
-                />
+                <p className="text-xs text-gray-500 mt-2">Enter your number as WhatsApp formats it (no + symbol).</p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Enter your number exactly as WhatsApp formats it without the + symbol. This links your messages to this dashboard.</p>
+
+              <div>
+                <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">Telegram Chat ID</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <MessageCircle size={16} className="text-blue-500" />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 8248070719" 
+                    className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                    value={telegramChatId}
+                    onChange={(e) => setTelegramChatId(e.target.value)}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Message the bot with <b>/id</b> on Telegram to get this number.</p>
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">Monthly Budget Limit (Premium)</label>
+              <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">Monthly Budget Limit</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <span className="text-gray-400 font-bold">LKR</span>
@@ -120,15 +142,11 @@ export default function Profile() {
                 <input 
                   type="number" 
                   placeholder="e.g. 15000" 
-                  className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-14 pr-4 py-3 focus:outline-none focus:border-red-500 transition-colors"
+                  className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-14 pr-4 py-3 focus:outline-none focus:border-orange-500 transition-colors"
                   value={budgetLimit}
                   onChange={(e) => setBudgetLimit(e.target.value)}
-                  disabled={!profile?.is_premium}
                 />
               </div>
-              {!profile?.is_premium && (
-                <p className="text-xs text-orange-500 mt-2">Upgrade to Premium to set a custom budget limit.</p>
-              )}
             </div>
             <button 
               type="submit" 

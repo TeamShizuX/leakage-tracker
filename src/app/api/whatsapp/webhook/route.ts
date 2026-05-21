@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { parseExpenseDetails } from '@/lib/gemini';
+import { parseExpenseDetails, determineIntent, generatePremiumChatResponse } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
@@ -42,37 +42,75 @@ export async function POST(request: Request) {
 
       console.log(`Received message from ${from}: ${msgBody}`);
 
+      let profileData = null;
       try {
-        // 1. Parse with Gemini
-        const expenseData = await parseExpenseDetails(msgBody);
-        
-        // 2. Save to Supabase
-        const { error } = await supabase
-          .from('transactions')
-          .insert([
-            {
-              user_id: from,
-              item: expenseData.item,
-              amount: expenseData.amount,
-              currency: expenseData.currency,
-              category: expenseData.category,
-              necessity_score: expenseData.necessity_score,
-              is_unnecessary: expenseData.is_unnecessary,
-            }
-          ]);
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_premium, budget_limit')
+          .eq('whatsapp_number', from)
+          .maybeSingle();
+        profileData = data;
+      } catch (err) {
+        console.error('Error looking up profile:', err);
+      }
 
-        if (error) {
-          console.error('Supabase Error:', error);
-          throw new Error('Database error');
+      try {
+        const intent = await determineIntent(msgBody);
+
+        if (intent === 'EXPENSE') {
+          // 1. Parse with Gemini
+          const expenseData = await parseExpenseDetails(msgBody);
+          
+          // 2. Save to Supabase
+          const { error } = await supabase
+            .from('transactions')
+            .insert([
+              {
+                user_id: from,
+                item: expenseData.item,
+                amount: expenseData.amount,
+                currency: expenseData.currency,
+                category: expenseData.category,
+                necessity_score: expenseData.necessity_score,
+                is_unnecessary: expenseData.is_unnecessary,
+              }
+            ]);
+
+          if (error) {
+            console.error('Supabase Error:', error);
+            throw new Error('Database error');
+          }
+
+          // 3. Send confirmation back to WhatsApp
+          const responseMessage = `Logged! ${expenseData.category}: ${expenseData.amount} ${expenseData.currency}.\n${expenseData.is_unnecessary ? '⚠️ Marked as Unnecessary' : '✅ Marked as Need'}`;
+          await sendWhatsAppMessage(phoneNumberId, from, responseMessage);
+        } else {
+          // CHAT
+          if (!profileData?.is_premium) {
+            await sendWhatsAppMessage(
+              phoneNumberId, 
+              from, 
+              '⭐ *Premium Feature*\n\nInteractive AI chat, financial summaries, and wallet roasts are available exclusively to Premium users! Head over to your dashboard to upgrade.'
+            );
+          } else {
+            // Fetch recent transactions
+            const { data: recentTransactions } = await supabase
+              .from('transactions')
+              .select('*')
+              .eq('user_id', from)
+              .order('created_at', { ascending: false })
+              .limit(50);
+
+            const budgetLimit = profileData?.budget_limit || 10000;
+            const responseText = await generatePremiumChatResponse(msgBody, recentTransactions || [], budgetLimit);
+            
+            await sendWhatsAppMessage(phoneNumberId, from, responseText);
+          }
         }
 
-        // 3. Send confirmation back to WhatsApp
-        const responseMessage = `Logged! ${expenseData.category}: ${expenseData.amount} ${expenseData.currency}.\n${expenseData.is_unnecessary ? '⚠️ Marked as Unnecessary' : '✅ Marked as Need'}`;
-        await sendWhatsAppMessage(phoneNumberId, from, responseMessage);
-
       } catch (error) {
-        console.error('Error processing expense:', error);
-        await sendWhatsAppMessage(phoneNumberId, from, 'Sorry, I could not process that expense. Please try formatting it like "Pizza for 2500".');
+        console.error('Error processing WhatsApp message:', error);
+        await sendWhatsAppMessage(phoneNumberId, from, 'Sorry, I encountered an error processing your request. If logging an expense, try formatting it clearly like "Pizza 2500".');
       }
     }
     return new NextResponse('EVENT_RECEIVED', { status: 200 });

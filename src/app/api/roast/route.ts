@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await request.json();
+    const { userId, profileId } = await request.json();
     
     // Fetch recent transactions for this user
     const { data: transactions, error } = await supabase
@@ -23,6 +23,24 @@ export async function POST(request: Request) {
     }
 
     const roast = await roastWallet(transactions);
+    
+    // Increment roast count if profileId is provided
+    if (profileId) {
+      // We first need to get the current count to increment it 
+      // (Using a simple select + update since we don't have a secure rpc increment function yet)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('roast_count')
+        .eq('id', profileId)
+        .single();
+        
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ roast_count: (profile.roast_count || 0) + 1 })
+          .eq('id', profileId);
+      }
+    }
     
     return NextResponse.json({ roast });
   } catch (error) {

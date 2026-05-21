@@ -102,17 +102,17 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white p-6 md:p-12 font-sans selection:bg-purple-500/30">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0A0A0A] text-white p-4 sm:p-6 md:p-12 font-sans selection:bg-purple-500/30">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link href="/" className="p-2 bg-[#1A1A1A] hover:bg-gray-800 rounded-full transition-colors">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-3xl font-extrabold tracking-tight">All Transactions</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">All Transactions</h1>
         </div>
 
-        <form onSubmit={handleSearch} className="bg-[#111] border border-gray-800 rounded-2xl p-6 flex flex-wrap gap-4 items-end">
+        <form onSubmit={handleSearch} className="bg-[#111] border border-gray-800 rounded-2xl p-4 sm:p-6 flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[150px]">
             <label className="block text-xs text-gray-500 mb-1 uppercase tracking-wider font-semibold">Start Date</label>
             <input 
@@ -151,8 +151,8 @@ export default function TransactionsPage() {
           ) : (
             <div className="divide-y divide-gray-800">
               {transactions.map((t) => (
-                <div key={t.id} className="p-5 flex items-center justify-between hover:bg-[#151515] transition-colors group">
-                  <div className="flex items-center gap-4 flex-1">
+                <div key={t.id} className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between hover:bg-[#151515] transition-colors group gap-4 sm:gap-0">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1">
                     <div className="w-10 h-10 rounded-full bg-gray-900 flex-shrink-0 flex items-center justify-center">
                       {getCategoryIcon(t.category)}
                     </div>
@@ -165,40 +165,41 @@ export default function TransactionsPage() {
                         />
                       </div>
                     ) : (
-                      <div>
-                        <p className="font-semibold text-gray-200 text-lg">{t.item}</p>
-                        <p className="text-sm text-gray-500">{format(new Date(t.created_at), 'MMMM do, yyyy • h:mm a')} • {t.category}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-200 text-base sm:text-lg truncate">{t.item}</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{format(new Date(t.created_at), 'MMM d, yyyy • h:mm a')} • {t.category}</p>
                       </div>
                     )}
                   </div>
-                  <div className="text-right flex items-center gap-6">
-                    <div className="flex flex-col items-end">
+                  
+                  <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 ml-13 sm:ml-0 pl-13 sm:pl-0">
+                    <div className="flex flex-col items-start sm:items-end">
                       {editingId === t.id ? (
                         <div className="flex items-center gap-1">
                           <input 
                             type="number"
-                            className="bg-[#222] border border-gray-700 rounded px-2 py-1 text-sm text-white w-24 text-right"
+                            className="bg-[#222] border border-gray-700 rounded px-2 py-1 text-sm text-white w-20 sm:w-24 text-right"
                             value={editForm.amount}
                             onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
                           />
-                          <span className="text-gray-500 text-sm">LKR</span>
+                          <span className="text-gray-500 text-xs sm:text-sm">LKR</span>
                         </div>
                       ) : (
-                        <p className="font-bold text-gray-200 text-xl">{t.amount} {t.currency}</p>
+                        <p className="font-bold text-gray-200 text-lg sm:text-xl">{t.amount} <span className="text-sm font-normal text-gray-400">{t.currency}</span></p>
                       )}
                       
                       {!editingId && t.is_unnecessary ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-red-950/50 text-red-400 px-2 py-1 rounded-full mt-1 font-semibold">
+                        <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] uppercase tracking-wider bg-red-950/50 text-red-400 px-2 py-1 rounded-full mt-1 font-semibold">
                           <AlertCircle size={10} /> Unnecessary
                         </span>
                       ) : !editingId && (
-                        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-green-950/50 text-green-400 px-2 py-1 rounded-full mt-1 font-semibold">
+                        <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] uppercase tracking-wider bg-green-950/50 text-green-400 px-2 py-1 rounded-full mt-1 font-semibold">
                           Essential
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       {editingId === t.id ? (
                         <>
                           <button onClick={() => saveEdit(t.id)} className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors">

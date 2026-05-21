@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
@@ -8,9 +8,18 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#030303",
+};
+
 export const metadata: Metadata = {
   title: "Leakage Tracker",
   description: "AI-Powered WhatsApp Expense Tracker",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    title: "Leakage",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
