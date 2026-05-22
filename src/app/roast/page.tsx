@@ -155,7 +155,7 @@ export default function RoastPage() {
             ) : (
               <p className="text-gray-500 text-lg leading-relaxed font-light">
                 Ready to face reality? <br/>
-                We will analyze your {transactionsLength} recent transactions.
+                We will analyze your {Math.min(10, transactionsLength)} recent transactions.
               </p>
             )}
           </div>
