@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle, MessageCircle, Send, Sparkles, TrendingDown, Lock, Zap } from 'lucide-react';
+import { CheckCircle, MessageCircle, Send, Sparkles, TrendingDown, Lock, Zap, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GuidePage() {
@@ -48,7 +48,7 @@ export default function GuidePage() {
                 <div>
                   <h3 className="font-bold text-lg mb-1">Telegram Setup</h3>
                   <p className="text-sm text-gray-400 leading-relaxed">
-                    Head to your <Link href="/profile" className="text-blue-400 hover:underline">Profile</Link> to connect your Telegram account by talking to our Telegram bot and entering your Chat ID.
+                    Head to your <Link href="/profile" className="text-blue-400 hover:underline">Profile</Link> to connect your Telegram account by messaging our official bot: <a href="https://t.me/Leakage777bot" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline font-bold">@Leakage777bot</a>.
                   </p>
                 </div>
               </div>
@@ -64,12 +64,56 @@ export default function GuidePage() {
           </div>
         </div>
 
+        {/* Install App Section (PWA) */}
+        <div className="bg-white/5 border border-white/5 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 transition-all group-hover:bg-blue-500/20"></div>
+          
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+            <span className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center text-sm">2</span>
+            Install the App (Optional)
+          </h2>
+
+          <div className="space-y-6">
+            <p className="text-gray-400">
+              Leakage Tracker works entirely in your browser, but you can install it to your home screen to use it like a native app!
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Smartphone size={20} className="text-gray-300" />
+                  <h3 className="font-bold text-lg">iOS (iPhone)</h3>
+                </div>
+                <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
+                  <li>Open Safari and navigate to Leakage Tracker.</li>
+                  <li>Tap the <strong>Share</strong> button at the bottom of the screen.</li>
+                  <li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li>
+                  <li>Tap <strong>"Add"</strong> in the top right corner.</li>
+                </ol>
+              </div>
+
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Smartphone size={20} className="text-gray-300" />
+                  <h3 className="font-bold text-lg">Android</h3>
+                </div>
+                <ol className="list-decimal list-inside text-sm text-gray-400 space-y-2">
+                  <li>Open Chrome and navigate to Leakage Tracker.</li>
+                  <li>Tap the <strong>three dots menu (⋮)</strong> in the top right corner.</li>
+                  <li>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+                  <li>Follow the on-screen prompt to add it.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Logging Expenses Section */}
         <div className="bg-white/5 border border-white/5 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20 transition-all group-hover:bg-orange-500/20"></div>
           
           <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm">2</span>
+            <span className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm">3</span>
             Logging Expenses
           </h2>
 
