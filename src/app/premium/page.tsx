@@ -493,7 +493,7 @@ export default function PremiumPage() {
                 Most Popular
               </div>
               <h3 className="text-2xl font-bold mb-2 text-orange-400">Premium</h3>
-              <div className="text-4xl font-black mb-6">$4.99<span className="text-lg font-normal text-gray-500">/mo</span></div>
+              <div className="text-4xl font-black mb-6">$2.99<span className="text-lg font-normal text-gray-500">/mo</span></div>
               <ul className="space-y-4 mb-8 flex-1">
                 <li className="flex items-center gap-3 text-white"><CheckCircle size={18} className="text-orange-500" /> Everything in Free</li>
                 <li className="flex items-center gap-3 text-white"><CheckCircle size={18} className="text-orange-500" /> Unlimited AI Roasts</li>
