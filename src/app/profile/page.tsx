@@ -12,6 +12,7 @@ export default function Profile() {
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [telegramChatId, setTelegramChatId] = useState('');
   const [budgetLimit, setBudgetLimit] = useState('10000');
+  const [savingsGoal, setSavingsGoal] = useState('0');
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
@@ -35,6 +36,7 @@ export default function Profile() {
         setWhatsappNumber(data.whatsapp_number || '');
         setTelegramChatId(data.telegram_chat_id || '');
         setBudgetLimit(data.budget_limit?.toString() || '10000');
+        setSavingsGoal(data.savings_goal?.toString() || '0');
       }
       setLoading(false);
     }
@@ -54,11 +56,12 @@ export default function Profile() {
           whatsapp_number: whatsappNumber,
           telegram_chat_id: telegramChatId,
           budget_limit: Number(budgetLimit),
+          savings_goal: Number(savingsGoal),
           username: session.user.user_metadata?.full_name,
           avatar_url: session.user.user_metadata?.avatar_url
         });
         
-      setProfile({ ...profile, whatsapp_number: whatsappNumber, telegram_chat_id: telegramChatId, budget_limit: Number(budgetLimit) });
+      setProfile({ ...profile, whatsapp_number: whatsappNumber, telegram_chat_id: telegramChatId, budget_limit: Number(budgetLimit), savings_goal: Number(savingsGoal) });
     }
     setSaving(false);
   };
@@ -145,6 +148,22 @@ export default function Profile() {
                   className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-14 pr-4 py-3 focus:outline-none focus:border-orange-500 transition-colors"
                   value={budgetLimit}
                   onChange={(e) => setBudgetLimit(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-2 uppercase tracking-wider font-semibold">Monthly Savings Goal</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <span className="text-gray-400 font-bold">LKR</span>
+                </div>
+                <input 
+                  type="number" 
+                  placeholder="e.g. 50000" 
+                  className="w-full bg-[#1A1A1A] border border-gray-800 rounded-xl pl-14 pr-4 py-3 focus:outline-none focus:border-green-500 transition-colors"
+                  value={savingsGoal}
+                  onChange={(e) => setSavingsGoal(e.target.value)}
                 />
               </div>
             </div>

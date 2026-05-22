@@ -21,18 +21,33 @@ export async function POST(request: Request) {
       .gte('created_at', firstDayOfMonth)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
+    const { data: incomes, error: incomeError } = await supabase
+      .from('incomes')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('created_at', firstDayOfMonth)
+      .order('created_at', { ascending: false });
+
+    if (error || incomeError) {
+      console.error('Supabase error:', error || incomeError);
+      return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
     }
 
-    if (!transactions || transactions.length === 0) {
+    if ((!transactions || transactions.length === 0) && (!incomes || incomes.length === 0)) {
       return NextResponse.json({ 
-        advice: "You haven't logged any expenses this month. Start logging to get personalized financial advice!" 
+        advice: "You haven't logged any expenses or income this month. Start logging to get personalized financial advice!" 
       });
     }
 
-    const advice = await generateFinancialAdvice(transactions, budgetLimit || 15000);
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('savings_goal')
+      .eq('whatsapp_number', userId)
+      .maybeSingle();
+
+    const savingsGoal = profile?.savings_goal || 0;
+
+    const advice = await generateFinancialAdvice(transactions || [], incomes || [], budgetLimit || 15000, savingsGoal);
 
     return NextResponse.json({ advice });
   } catch (error) {

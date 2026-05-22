@@ -94,13 +94,16 @@ export async function POST(request: Request) {
   const msgBody = message.text;
   console.log(`Telegram message from ${chatId} (@${username}): ${msgBody}`);
 
+  // Show "typing..." indicator in Telegram while AI processes
+  await sendTelegramChatAction(chatId, 'typing');
+
   // Determine user_id: look up profile by telegram_chat_id, fallback to chat ID string
   let userId = `tg_${chatId}`;
   let profileData: any = null;
   try {
     const { data, error: profileError } = await supabase
       .from('profiles')
-      .select('whatsapp_number, telegram_chat_id, is_premium, budget_limit')
+      .select('whatsapp_number, telegram_chat_id, is_premium, budget_limit, savings_goal')
       .eq('telegram_chat_id', String(chatId))
       .maybeSingle();
     profileData = data;
@@ -166,7 +169,7 @@ export async function POST(request: Request) {
 
       await sendTelegramMessage(chatId, responseMessage);
       
-    } else {
+
       // Intent is CHAT
       if (!profileData?.is_premium) {
         await sendTelegramMessage(
@@ -186,8 +189,9 @@ export async function POST(request: Request) {
         .limit(50); // Get last 50 transactions
 
       const budgetLimit = profileData?.budget_limit || 10000;
+      const savingsGoal = profileData?.savings_goal || 0;
       
-      const responseText = await generatePremiumChatResponse(msgBody, recentTransactions || [], budgetLimit);
+      const responseText = await generatePremiumChatResponse(msgBody, recentTransactions || [], budgetLimit, savingsGoal);
       
       await sendTelegramMessage(chatId, responseText);
     }
@@ -238,5 +242,23 @@ async function sendTelegramMessage(chatId: number | string, text: string) {
     }
   } catch (error) {
     console.error('Network error sending Telegram message:', error);
+  }
+}
+
+async function sendTelegramChatAction(chatId: number | string, action: string = 'typing') {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendChatAction`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        action: action,
+      }),
+    });
+  } catch (error) {
+    console.error('Network error sending Telegram chat action:', error);
   }
 }

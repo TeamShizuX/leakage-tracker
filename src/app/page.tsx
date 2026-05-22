@@ -17,17 +17,25 @@ export default function Dashboard() {
   const [expenseText, setExpenseText] = useState('');
   const [addingExpense, setAddingExpense] = useState(false);
   const router = useRouter();
-  
-  const fetchTransactions = async (uid: string) => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', uid)
-      .order('created_at', { ascending: false });
 
-    if (error) console.error(error);
-    else setTransactions(data || []);
+  const getUserId = () => {
+    if (!profile) return null;
+    if (profile.whatsapp_number) return profile.whatsapp_number;
+    if (profile.telegram_chat_id) return `tg_${profile.telegram_chat_id}`;
+    return null;
+  };
+  
+  const fetchData = async (uid: string) => {
+    setLoading(true);
+    const [txResponse] = await Promise.all([
+      supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+    ]);
+
+    setTransactions(txResponse.data || []);
     setLoading(false);
   };
 
@@ -48,8 +56,9 @@ export default function Dashboard() {
 
       if (profileData) {
         setProfile(profileData);
-        if (profileData.whatsapp_number) {
-          fetchTransactions(profileData.whatsapp_number);
+        const uid = profileData.whatsapp_number || (profileData.telegram_chat_id ? `tg_${profileData.telegram_chat_id}` : null);
+        if (uid) {
+          fetchData(uid);
         } else {
           setLoading(false); // No number to fetch transactions for
         }
@@ -63,10 +72,11 @@ export default function Dashboard() {
   const handleRoast = async () => {
     setIsRoasting(true);
     try {
+      const uid = getUserId();
       const res = await fetch('/api/roast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: profile?.whatsapp_number })
+        body: JSON.stringify({ userId: uid })
       });
       const data = await res.json();
       setRoast(data.roast);
@@ -78,19 +88,20 @@ export default function Dashboard() {
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expenseText.trim() || !profile?.whatsapp_number) return;
+    const uid = getUserId();
+    if (!expenseText.trim() || !uid) return;
     
     setAddingExpense(true);
     try {
       const res = await fetch('/api/expense', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: expenseText, userId: profile.whatsapp_number })
+        body: JSON.stringify({ text: expenseText, userId: uid })
       });
       
       if (res.ok) {
         setExpenseText('');
-        fetchTransactions(profile.whatsapp_number); // Refresh data
+        fetchData(uid);
       } else {
         alert('Failed to add expense');
       }
@@ -151,8 +162,8 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto space-y-8 w-full relative z-10">
         
         {/* Removed redundant header (logo & profile) */}
-
-        {!loading && profile && !profile.whatsapp_number && (
+        {/* If no WhatsApp or Telegram is linked */}
+        {!loading && profile && !getUserId() && (
           <div className="bg-orange-500/10 backdrop-blur-md border border-orange-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl">
             <div>
               <h3 className="text-orange-400 font-bold text-lg flex items-center gap-2"><AlertCircle size={20} /> Connect Your WhatsApp</h3>
@@ -180,6 +191,7 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-16">
             
+
             {/* Intro & Quick Add Section */}
             <div className="text-center max-w-4xl mx-auto pt-4">
               <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
@@ -190,27 +202,29 @@ export default function Dashboard() {
                 Log expenses via WhatsApp or below. Our AI instantly categorizes your spending and calculates your unnecessary "leakage."
               </p>
 
-              {profile?.whatsapp_number && (
-                <form onSubmit={handleAddExpense} className="relative group max-w-2xl mx-auto w-full">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
-                  <div className="relative flex flex-col sm:flex-row gap-2 bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl">
-                    <input 
-                      type="text" 
-                      placeholder="Type naturally... e.g. 'I just bought a $5 coffee'" 
-                      className="flex-1 bg-transparent px-3 sm:px-4 py-3 text-base sm:text-lg focus:outline-none placeholder-gray-500 text-white w-full"
-                      value={expenseText}
-                      onChange={(e) => setExpenseText(e.target.value)}
-                      disabled={addingExpense}
-                    />
-                    <button 
-                      type="submit" 
-                      disabled={addingExpense || !expenseText.trim()}
-                      className="bg-white text-black px-4 sm:px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto"
-                    >
-                      {addingExpense ? <span className="animate-pulse">Parsing AI...</span> : <><Plus size={20} /> Log</>}
-                    </button>
-                  </div>
-                </form>
+              {getUserId() && (
+                <div className="relative group max-w-2xl mx-auto w-full">
+                  <form onSubmit={handleAddExpense} className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
+                    <div className="relative flex flex-col sm:flex-row gap-2 bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl">
+                      <input 
+                        type="text" 
+                        placeholder="Type naturally... e.g. 'I just bought a $5 coffee'" 
+                        className="flex-1 bg-transparent px-3 sm:px-4 py-3 text-base sm:text-lg focus:outline-none placeholder-gray-500 text-white w-full"
+                        value={expenseText}
+                        onChange={(e) => setExpenseText(e.target.value)}
+                        disabled={addingExpense}
+                      />
+                      <button 
+                        type="submit" 
+                        disabled={addingExpense || !expenseText.trim()}
+                        className="bg-white text-black px-4 sm:px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto"
+                      >
+                        {addingExpense ? <span className="animate-pulse">Parsing AI...</span> : <><Plus size={20} /> Log</>}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               )}
             </div>
 
@@ -231,29 +245,29 @@ export default function Dashboard() {
               </div>
 
               <div className="col-span-1 flex flex-col gap-4">
-                <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-[1.5rem] p-6 flex-1 flex flex-col justify-center hover:bg-white/10 transition-colors">
-                   <h2 className="text-gray-400 font-bold tracking-widest text-[10px] uppercase mb-2">Total Spent</h2>
-                   <div className="text-3xl font-bold text-white">
-                     <span className="text-sm text-gray-500 mr-2 font-normal">LKR</span>
+                <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-[1.5rem] px-6 py-4 flex-1 flex flex-col justify-start relative group/card hover:bg-white/10 transition-all">
+                   <Link href="/transactions" className="absolute inset-0 z-10"></Link>
+                   <div className="flex justify-between items-start">
+                     <h2 className="text-gray-400 font-bold tracking-widest text-[10px] uppercase">Total Spending</h2>
+                     <div className="bg-white/10 p-1 rounded-full group-hover/card:bg-white group-hover/card:text-black transition-colors">
+                       <ArrowRight size={12} />
+                     </div>
+                   </div>
+                   <div className="text-3xl font-bold text-white break-words mt-1">
+                     <span className="text-sm text-gray-500 mr-1">LKR</span>
                      {totalSpent.toLocaleString()}
                    </div>
                 </div>
-                <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-[1.5rem] p-6 flex-1 flex flex-col justify-center hover:bg-white/10 transition-colors">
-                   <h2 className="text-gray-400 font-bold tracking-widest text-[10px] uppercase mb-2">Necessary Spend</h2>
-                   <div className="text-3xl font-bold text-white">
-                     <span className="text-sm text-gray-500 mr-2 font-normal">LKR</span>
-                     {necessary.toLocaleString()}
-                   </div>
-                </div>
-                <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-[1.5rem] p-6 flex-1 flex flex-col justify-center relative group/card hover:bg-white/10 transition-all">
+
+                <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-[1.5rem] px-6 py-4 flex-1 flex flex-col justify-start relative group/card hover:bg-white/10 transition-all">
                    <Link href="/transactions" className="absolute inset-0 z-10"></Link>
                    <div className="flex justify-between items-start">
-                     <h2 className="text-gray-400 font-bold tracking-widest text-[10px] uppercase mb-2">Transactions</h2>
-                     <div className="bg-white/10 p-1.5 rounded-full group-hover/card:bg-white group-hover/card:text-black transition-colors">
-                       <ArrowRight size={14} />
+                     <h2 className="text-gray-400 font-bold tracking-widest text-[10px] uppercase">Transactions</h2>
+                     <div className="bg-white/10 p-1 rounded-full group-hover/card:bg-white group-hover/card:text-black transition-colors">
+                       <ArrowRight size={12} />
                      </div>
                    </div>
-                   <div className="text-3xl font-bold text-white">
+                   <div className="text-3xl font-bold text-white mt-1">
                      {currentMonthTransactions.length}
                    </div>
                 </div>

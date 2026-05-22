@@ -52,16 +52,20 @@ export async function roastWallet(transactions: any[]) {
   return result.response.text();
 }
 
-export async function generateFinancialAdvice(transactions: any[], budgetLimit: number) {
+export async function generateFinancialAdvice(transactions: any[], budgetLimit: number, savingsGoal: number) {
   const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
   const prompt = `
     You are a professional, helpful financial advisor.
-    The user has a monthly budget limit of ${budgetLimit} LKR.
-    Here are their transactions for this month so far:
+    The user has a monthly budget limit of ${budgetLimit} LKR and a monthly savings goal of ${savingsGoal} LKR.
+    
+
+
+    Here are their expenses for this month so far:
     ${JSON.stringify(transactions, null, 2)}
     
     Please provide actionable, personalized financial advice.
+    - Mention their total income vs expenses and explicitly state if they are on track to hit their savings goal.
     - Identify where they are overspending or experiencing "leakage" (unnecessary expenses).
     - Give them 2-3 specific, realistic tips to cut costs based on their actual categories.
     - Keep the tone encouraging but firm.
@@ -81,9 +85,6 @@ export async function determineIntent(text: string): Promise<'EXPENSE' | 'CHAT'>
     Determine if the user is trying to LOG an expense (e.g., "Pizza 200", "Paid for gas 5000", "I bought shoes for $50"), 
     OR if they are trying to CHAT / ask a question (e.g., "What is my total?", "Roast me", "Give me advice", "Hello", "How much did I spend?").
     
-    If it contains an amount and an item/service, it is likely an EXPENSE. 
-    If it's a question, a greeting, or a request for analysis/roast, it is CHAT.
-    
     Respond ONLY with the word "EXPENSE" or "CHAT". No other text.
     
     Message: "${text}"
@@ -92,15 +93,16 @@ export async function determineIntent(text: string): Promise<'EXPENSE' | 'CHAT'>
   try {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().trim().toUpperCase();
+
     if (responseText.includes('CHAT')) return 'CHAT';
     return 'EXPENSE';
   } catch (error) {
-    console.error('Error determining intent, defaulting to EXPENSE:', error);
-    return 'EXPENSE';
+    console.error('Error determining intent, defaulting to CHAT:', error);
+    return 'CHAT';
   }
 }
 
-export async function generatePremiumChatResponse(text: string, transactions: any[], budgetLimit: number) {
+export async function generatePremiumChatResponse(text: string, transactions: any[], budgetLimit: number, savingsGoal: number) {
   const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
   const prompt = `
@@ -111,12 +113,14 @@ export async function generatePremiumChatResponse(text: string, transactions: an
     
     Context:
     - User's Monthly Budget: ${budgetLimit} LKR
-    - Recent Transactions: ${JSON.stringify(transactions, null, 2)}
+    - User's Monthly Savings Goal: ${savingsGoal} LKR
+
+    - Recent Expenses: ${JSON.stringify(transactions, null, 2)}
     
     Instructions:
     1. Answer the user's message directly based on the context provided.
     2. If they ask for a roast, be brutally honest, sarcastic, and funny about their spending (especially "unnecessary" items).
-    3. If they ask for a summary, calculate their totals based on the provided transactions and give them a clean breakdown.
+    3. If they ask for a summary, calculate their total expenses and let them know if they are on track to save ${savingsGoal} this month.
     4. Maintain an elite, premium tone. You are an exclusive perk they paid for.
     5. Use basic Markdown (bolding, lists) to format your response nicely for a chat interface. Keep it concise enough for a text message.
   `;
