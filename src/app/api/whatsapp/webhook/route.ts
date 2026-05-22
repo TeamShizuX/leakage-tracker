@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { parseExpenseDetails, determineIntent, generatePremiumChatResponse, parseIncomeDetails } from '@/lib/gemini';
+import { parseExpenseDetails, determineIntent, generatePremiumChatResponse } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
@@ -84,31 +84,7 @@ export async function POST(request: Request) {
           // 3. Send confirmation back to WhatsApp
           const responseMessage = `Logged! ${expenseData.category}: ${expenseData.amount} ${expenseData.currency}.\n${expenseData.is_unnecessary ? '⚠️ Marked as Unnecessary' : '✅ Marked as Need'}`;
           await sendWhatsAppMessage(phoneNumberId, from, responseMessage);
-        } else if (intent === 'INCOME') {
-          // 1. Parse with Gemini
-          const incomeData = await parseIncomeDetails(msgBody);
-          
-          // 2. Save to Supabase
-          const { error } = await supabase
-            .from('incomes')
-            .insert([
-              {
-                user_id: from,
-                source: incomeData.source,
-                amount: incomeData.amount,
-                currency: incomeData.currency,
-              }
-            ]);
 
-          if (error) {
-            console.error('Supabase Error:', error);
-            throw new Error('Database error');
-          }
-
-          // 3. Send confirmation back to WhatsApp
-          const responseMessage = `✅ Income Logged! ${incomeData.source}: ${incomeData.amount} ${incomeData.currency}.`;
-          await sendWhatsAppMessage(phoneNumberId, from, responseMessage);
-        } else {
           // CHAT
           if (!profileData?.is_premium) {
             await sendWhatsAppMessage(
@@ -125,16 +101,9 @@ export async function POST(request: Request) {
               .order('created_at', { ascending: false })
               .limit(50);
 
-            const { data: recentIncomes } = await supabase
-              .from('incomes')
-              .select('*')
-              .eq('user_id', from)
-              .order('created_at', { ascending: false })
-              .limit(50);
-
             const budgetLimit = profileData?.budget_limit || 10000;
             const savingsGoal = profileData?.savings_goal || 0;
-            const responseText = await generatePremiumChatResponse(msgBody, recentTransactions || [], recentIncomes || [], budgetLimit, savingsGoal);
+            const responseText = await generatePremiumChatResponse(msgBody, recentTransactions || [], budgetLimit, savingsGoal);
             
             await sendWhatsAppMessage(phoneNumberId, from, responseText);
           }
