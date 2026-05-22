@@ -33,7 +33,7 @@ export default function PremiumPage() {
   const [chatInput, setChatInput] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  const getUserId = (profileData: any = profile) => {
+  const getUserId = (profileData: any = user) => {
     if (!profileData) return null;
     if (profileData.whatsapp_number) return profileData.whatsapp_number;
     if (profileData.telegram_chat_id) return `tg_${profileData.telegram_chat_id}`;
@@ -152,7 +152,7 @@ export default function PremiumPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: chatInput, userId: uid })
+        body: JSON.stringify({ message: chatInput, userId: getUserId() })
       });
       const data = await res.json();
       setChatMessages([...newMessages, { role: 'ai', text: data.response || "Sorry, I encountered an error." }]);
@@ -257,7 +257,7 @@ export default function PremiumPage() {
                             <Tooltip 
                               contentStyle={{ backgroundColor: 'rgba(10,10,10,0.8)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '1rem', color: '#fff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
                               itemStyle={{ color: '#fff' }} 
-                              formatter={(value: number) => `LKR ${value.toLocaleString()}`}
+                              formatter={(value: any) => `LKR ${Number(value).toLocaleString()}`}
                             />
                           </PieChart>
                         </ResponsiveContainer>
@@ -321,7 +321,7 @@ export default function PremiumPage() {
                           cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                           contentStyle={{ backgroundColor: 'rgba(10,10,10,0.8)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '1rem', color: '#fff', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
                           itemStyle={{ color: '#fff' }}
-                          formatter={(value: number) => `LKR ${value.toLocaleString()}`}
+                          formatter={(value: any) => `LKR ${Number(value).toLocaleString()}`}
                         />
                         <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
                         <Bar dataKey="Expense" fill="url(#colorExpense)" radius={[4, 4, 0, 0]} maxBarSize={30} />
