@@ -55,7 +55,8 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#030303]/80 backdrop-blur-xl border-b border-white/5">
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#030303]/80 backdrop-blur-xl border-b border-white/5">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
@@ -67,24 +68,26 @@ export default function Navbar() {
           )}
         </Link>
 
-        <div className="flex items-center gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-            return (
-              <Link 
-                key={item.path} 
-                href={item.path}
-                className={`flex items-center gap-2 px-2.5 sm:px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  isActive 
-                    ? 'bg-white/10 text-white' 
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                }`}
-              >
-                {item.icon}
-                <span className="hidden sm:inline">{item.name}</span>
-              </Link>
-            );
-          })}
+        <div className="flex items-center gap-1 md:gap-2">
+          <div className="hidden sm:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.path;
+              return (
+                <Link 
+                  key={item.path} 
+                  href={item.path}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-all ${
+                    isActive 
+                      ? 'bg-white/10 text-white' 
+                      : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
           
           {isAdmin && (
             <Link href="/admin" className="flex items-center gap-2 px-3 sm:px-4 py-2 ml-1 rounded-full text-sm font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all border border-red-500/20">
@@ -100,5 +103,29 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+
+    {/* Mobile Bottom Navigation */}
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#030303]/90 backdrop-blur-xl border-t border-white/10 pb-safe">
+      <div className="flex items-center justify-around h-16 px-2">
+         {navItems.map((item) => {
+             const isActive = pathname === item.path;
+             return (
+               <Link 
+                 key={item.path} 
+                 href={item.path}
+                 className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-all ${
+                   isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'
+                 }`}
+               >
+                 <div className={`${isActive ? 'bg-white/10 p-1.5 rounded-xl' : 'p-1.5'}`}>
+                   {item.icon}
+                 </div>
+                 <span className="text-[10px] font-medium leading-none">{item.name}</span>
+               </Link>
+             );
+         })}
+      </div>
+    </nav>
+    </>
   );
 }
