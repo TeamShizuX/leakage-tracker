@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, List, Flame, User, FlameIcon, Sparkles, ShieldAlert, BookOpen } from 'lucide-react';
+import { Home, List, Flame, User, FlameIcon, Sparkles, ShieldAlert, BookOpen, Gamepad2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -47,6 +47,7 @@ export default function Navbar() {
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <Home size={18} /> },
+    { name: 'Games', path: '/game', icon: <Gamepad2 size={18} /> },
     { name: 'Guide', path: '/guide', icon: <BookOpen size={18} /> },
     { name: 'Transactions', path: '/transactions', icon: <List size={18} /> },
     { name: 'Roast Me', path: '/roast', icon: <FlameIcon size={18} /> },
