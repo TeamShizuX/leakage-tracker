@@ -104,28 +104,31 @@ export default function Navbar() {
       </div>
     </nav>
 
-    {/* Mobile Bottom Navigation */}
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#030303]/90 backdrop-blur-xl border-t border-white/10 pb-safe">
-      <div className="flex items-center justify-around h-16 px-2">
-         {navItems.map((item) => {
-             const isActive = pathname === item.path;
-             return (
-               <Link 
-                 key={item.path} 
-                 href={item.path}
-                 className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-all ${
-                   isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-                 }`}
-               >
-                 <div className={`${isActive ? 'bg-white/10 p-1.5 rounded-xl' : 'p-1.5'}`}>
-                   {item.icon}
-                 </div>
-                 <span className="text-[10px] font-medium leading-none">{item.name}</span>
-               </Link>
-             );
-         })}
-      </div>
-    </nav>
+    {/* Mobile Bottom Navigation - Apple Liquid Glass Style */}
+    <div className="sm:hidden fixed bottom-6 left-4 right-4 z-50 flex justify-center pb-safe">
+      <nav className="w-full max-w-md bg-white/10 backdrop-blur-3xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-full overflow-hidden">
+        <div className="flex items-center justify-around h-16 px-2">
+           {navItems.map((item) => {
+               const isActive = pathname === item.path;
+               return (
+                 <Link 
+                   key={item.path} 
+                   href={item.path}
+                   className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-300 ${
+                     isActive ? 'text-white scale-110' : 'text-white/60 hover:text-white/90'
+                   }`}
+                 >
+                   <div className={`${isActive ? 'bg-gradient-to-br from-red-500 to-orange-500 shadow-lg shadow-orange-500/30 p-2 rounded-full text-white' : 'p-1.5'}`}>
+                     {item.icon}
+                   </div>
+                   {/* Hide text for a cleaner dock look, or keep it extremely subtle */}
+                   {/* <span className="text-[10px] font-medium leading-none">{item.name}</span> */}
+                 </Link>
+               );
+           })}
+        </div>
+      </nav>
+    </div>
     </>
   );
 }
