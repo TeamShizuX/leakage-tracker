@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Share2, Play, Users, Trophy, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Share2, Play, Users, Trophy, AlertTriangle, Copy, Check, StopCircle, UserMinus, LogOut } from 'lucide-react';
 
 export default function GameLobby({ params }: { params: Promise<{ id: string }> }) {
   const { id: gameId } = use(params);
@@ -75,6 +75,25 @@ export default function GameLobby({ params }: { params: Promise<{ id: string }> 
     setStarting(false);
   };
 
+  const handleAction = async (action: string, targetProfileId?: string) => {
+    try {
+      const res = await fetch('/api/game/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, userId: profile.id, gameId: game.id, targetProfileId })
+      });
+      if (res.ok) {
+        if (action === 'leave') router.push('/game');
+        else window.location.reload();
+      } else {
+        const err = await res.text();
+        alert(`Failed to ${action}: ` + err);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -131,6 +150,24 @@ export default function GameLobby({ params }: { params: Promise<{ id: string }> 
                 )}
               </div>
             )}
+            
+            {game.status === 'active' && isCreator && (
+              <button 
+                onClick={() => handleAction('end')}
+                className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl font-bold transition-all"
+              >
+                <StopCircle size={18} /> End Challenge Early
+              </button>
+            )}
+
+            {!isCreator && game.status !== 'completed' && (
+              <button 
+                onClick={() => handleAction('leave')}
+                className="flex items-center justify-center gap-2 bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-red-500 border border-white/10 hover:border-red-500/50 px-4 py-2 rounded-xl transition-all"
+              >
+                <LogOut size={18} /> Leave Challenge
+              </button>
+            )}
           </div>
         </div>
 
@@ -144,14 +181,14 @@ export default function GameLobby({ params }: { params: Promise<{ id: string }> 
           <div className="space-y-4">
             {leaderboard.map((p, index) => {
               const isMe = p.profileId === profile?.id;
-              const isWinner = game.status === 'completed' && index === 0;
-              const isLoser = game.status === 'completed' && index === leaderboard.length - 1 && leaderboard.length > 1;
+              const isLoser = game.status === 'completed' && index === 0;
+              const isWinner = game.status === 'completed' && index === leaderboard.length - 1 && leaderboard.length > 1;
 
               return (
-                <div key={p.profileId} className={`flex items-center justify-between p-4 rounded-2xl border ${isMe ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 bg-white/5'}`}>
+                <div key={p.profileId} className={`flex items-center justify-between p-4 rounded-2xl border ${index === 0 && game.status !== 'waiting' ? 'border-yellow-500/50 bg-yellow-500/10' : isMe ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 bg-white/5'}`}>
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                      index === 0 && game.status !== 'waiting' ? 'bg-yellow-500 text-black' : 
+                      index === 0 && game.status !== 'waiting' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black shadow-lg shadow-yellow-500/20' : 
                       index === 1 && game.status !== 'waiting' ? 'bg-gray-300 text-black' : 
                       index === 2 && game.status !== 'waiting' ? 'bg-orange-600 text-white' : 
                       'bg-white/10 text-gray-400'
@@ -160,24 +197,35 @@ export default function GameLobby({ params }: { params: Promise<{ id: string }> 
                     </div>
                     <div>
                       <p className="font-bold flex items-center gap-2">
-                        {p.whatsapp_number || 'Unknown User'} 
+                        {p.username || p.whatsapp_number || 'Unknown User'} 
                         {isMe && <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">You</span>}
                       </p>
                       {game.status === 'completed' && (
                         <p className="text-sm mt-1">
-                          {isWinner && <span className="text-yellow-500 flex items-center gap-1"><Trophy size={14}/> Financial Guru Badge</span>}
+                          {isWinner && <span className="text-green-500 flex items-center gap-1"><Trophy size={14}/> Financial Guru Badge</span>}
                           {isLoser && <span className="text-red-500 flex items-center gap-1"><AlertTriangle size={14}/> The Leaky Bucket Badge</span>}
                         </p>
                       )}
                     </div>
                   </div>
                   
-                  {game.status !== 'waiting' && (
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-gray-200">{p.totalSpent.toLocaleString()} LKR</p>
-                      <p className="text-xs text-gray-500">spent</p>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-4">
+                    {game.status !== 'waiting' && (
+                      <div className="text-right">
+                        <p className={`text-xl font-bold ${index === 0 ? 'text-yellow-500' : 'text-gray-200'}`}>{p.totalSpent.toLocaleString()} LKR</p>
+                        <p className="text-xs text-gray-500">spent</p>
+                      </div>
+                    )}
+                    {isCreator && !isMe && game.status === 'waiting' && (
+                      <button 
+                        onClick={() => handleAction('remove', p.profileId)}
+                        className="p-2 text-gray-500 hover:text-red-500 bg-white/5 hover:bg-red-500/10 rounded-lg transition-all"
+                        title="Remove player"
+                      >
+                        <UserMinus size={18} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

@@ -24,7 +24,7 @@ export async function GET(request: Request, context: any) {
     // 2. Get Participants
     const { data: participants, error: partError } = await supabase
       .from('game_participants')
-      .select('profile_id, profiles(id, whatsapp_number, is_premium)')
+      .select('profile_id, profiles(id, username, whatsapp_number, is_premium)')
       .eq('game_id', gameId);
 
     if (partError) throw partError;
@@ -52,14 +52,15 @@ export async function GET(request: Request, context: any) {
 
       return {
         profileId: profile.id,
+        username: profile.username,
         whatsapp_number: profile.whatsapp_number,
         is_premium: profile.is_premium,
         totalSpent
       };
     }));
 
-    // Sort leaderboard (lowest spender first)
-    leaderboard.sort((a, b) => a.totalSpent - b.totalSpent);
+    // Sort leaderboard (highest spender first)
+    leaderboard.sort((a, b) => b.totalSpent - a.totalSpent);
 
     return NextResponse.json({ game, leaderboard });
   } catch (error) {
