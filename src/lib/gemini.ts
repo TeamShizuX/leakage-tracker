@@ -37,8 +37,12 @@ export async function parseExpenseDetails(text: string) {
   }
 }
 
-export async function roastWallet(transactions: any[]) {
+export async function roastWallet(transactions: any[], language: string = 'english') {
   const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+
+  const languageInstruction = language.toLowerCase() === 'sinhala' 
+    ? "IMPORTANT: Write the roast entirely in conversational, natural Sinhala while maintaining the sarcastic and brutally honest tone." 
+    : "Write the roast in English.";
 
   const prompt = `
     You are a sarcastic financial advisor roasting a user's wallet based on their recent transactions.
@@ -46,6 +50,8 @@ export async function roastWallet(transactions: any[]) {
     ${JSON.stringify(transactions, null, 2)}
     
     Give a short, brutally honest, and humorous paragraph analyzing their spending habits. Focus especially on anything marked as "is_unnecessary". Don't be too mean, keep it fun but stinging.
+    
+    ${languageInstruction}
   `;
 
   const result = await model.generateContent(prompt);

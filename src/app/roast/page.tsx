@@ -12,6 +12,7 @@ export default function RoastPage() {
   const [roast, setRoast] = useState('');
   const [isRoasting, setIsRoasting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [language, setLanguage] = useState<'english' | 'sinhala'>('english');
   const [transactionsLength, setTransactionsLength] = useState(0);
   const [roastsRemaining, setRoastsRemaining] = useState<number | null>(null);
   const router = useRouter();
@@ -80,7 +81,7 @@ export default function RoastPage() {
       const res = await fetch('/api/roast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: profile.whatsapp_number, profileId: profile.id })
+        body: JSON.stringify({ userId: profile.whatsapp_number, profileId: profile.id, language })
       });
       const data = await res.json();
       setRoast(data.roast);
@@ -160,6 +161,25 @@ export default function RoastPage() {
             )}
           </div>
           
+          <div className="flex justify-center mb-6">
+            <div className="bg-black/50 p-1 rounded-full border border-white/10 flex relative z-10 w-fit">
+              <button 
+                onClick={() => setLanguage('english')}
+                disabled={isRoasting}
+                className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${language === 'english' ? 'bg-white text-black shadow-lg' : 'text-gray-400 hover:text-white'}`}
+              >
+                English
+              </button>
+              <button 
+                onClick={() => setLanguage('sinhala')}
+                disabled={isRoasting}
+                className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${language === 'sinhala' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-gray-400 hover:text-white'}`}
+              >
+                Sinhala
+              </button>
+            </div>
+          </div>
+
           <button 
             onClick={handleRoast}
             disabled={isRoasting || transactionsLength === 0 || (roastsRemaining === 0 && !profile.is_premium)}

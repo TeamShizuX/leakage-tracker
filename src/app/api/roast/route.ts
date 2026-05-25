@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { userId, profileId } = await request.json();
+    const { userId, profileId, language } = await request.json();
     
     // Fetch recent transactions for this user
     const { data: transactions, error } = await supabase
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ roast: "You haven't bought anything yet. Either you're broke or incredibly disciplined. Either way, boring." });
     }
 
-    const roast = await roastWallet(transactions);
+    const roast = await roastWallet(transactions, language);
     
     // Increment roast count if profileId is provided
     if (profileId) {
