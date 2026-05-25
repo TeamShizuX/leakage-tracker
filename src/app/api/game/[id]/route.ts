@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 export async function GET(request: Request, context: any) {
   try {
     const { params } = context;
-    const gameId = params.id;
+    const gameId = (await params).id;
 
     // 1. Get Game
     let { data: game, error: gameError } = await supabase

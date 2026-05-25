@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Share2, Play, Users, Trophy, AlertTriangle, Copy, Check } from 'lucide-react';
 
-export default function GameLobby({ params }: { params: { id: string } }) {
+export default function GameLobby({ params }: { params: Promise<{ id: string }> }) {
+  const { id: gameId } = use(params);
+  
   const [profile, setProfile] = useState<any>(null);
   const [game, setGame] = useState<any>(null);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -31,11 +33,11 @@ export default function GameLobby({ params }: { params: { id: string } }) {
           await fetch('/api/game/join', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: profileData.id, gameId: params.id })
+            body: JSON.stringify({ userId: profileData.id, gameId })
           });
 
           // Fetch game and leaderboard data
-          const res = await fetch(`/api/game/${params.id}`);
+          const res = await fetch(`/api/game/${gameId}`);
           if (res.ok) {
             const data = await res.json();
             setGame(data.game);
@@ -51,7 +53,7 @@ export default function GameLobby({ params }: { params: { id: string } }) {
       setLoading(false);
     }
     load();
-  }, [params.id, router]);
+  }, [gameId, router]);
 
   const handleStart = async () => {
     setStarting(true);

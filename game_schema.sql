@@ -23,12 +23,8 @@ ALTER TABLE game_participants ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone to read games
 CREATE POLICY "Enable read access for all users" ON games FOR SELECT USING (true);
--- Allow anyone to create games (where they are the creator)
-CREATE POLICY "Enable insert for authenticated users" ON games FOR INSERT WITH CHECK (auth.uid() = created_by);
--- Allow creators to update their own games (to start them)
-CREATE POLICY "Enable update for creator" ON games FOR UPDATE USING (auth.uid() = created_by);
+CREATE POLICY "Allow anon all access" ON games FOR ALL USING (true) WITH CHECK (true);
 
 -- Allow anyone to read game participants
 CREATE POLICY "Enable read access for all users" ON game_participants FOR SELECT USING (true);
--- Allow users to join games
-CREATE POLICY "Enable insert for authenticated users" ON game_participants FOR INSERT WITH CHECK (auth.uid() = profile_id);
+CREATE POLICY "Allow anon all access" ON game_participants FOR ALL USING (true) WITH CHECK (true);
