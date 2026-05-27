@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generatePremiumChatResponse } from '@/lib/gemini';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {

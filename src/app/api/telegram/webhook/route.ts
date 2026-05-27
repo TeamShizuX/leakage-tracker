@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseExpenseDetails, determineIntent, generatePremiumChatResponse } from '@/lib/gemini';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;

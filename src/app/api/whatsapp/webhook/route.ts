@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseExpenseDetails, determineIntent, generatePremiumChatResponse } from '@/lib/gemini';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
@@ -44,12 +44,12 @@ export async function POST(request: Request) {
 
       let profileData = null;
       try {
-        const { data } = await supabase
+        const { data: profile } = await supabaseAdmin
           .from('profiles')
-          .select('is_premium, budget_limit, savings_goal')
+          .select('id, is_premium, username')
           .eq('whatsapp_number', from)
-          .maybeSingle();
-        profileData = data;
+          .single();
+        profileData = profile;
       } catch (err) {
         console.error('Error looking up profile:', err);
       }
@@ -62,19 +62,15 @@ export async function POST(request: Request) {
           const expenseData = await parseExpenseDetails(msgBody);
           
           // 2. Save to Supabase
-          const { error } = await supabase
-            .from('transactions')
-            .insert([
-              {
-                user_id: from,
-                item: expenseData.item,
-                amount: expenseData.amount,
-                currency: expenseData.currency,
-                category: expenseData.category,
-                necessity_score: expenseData.necessity_score,
-                is_unnecessary: expenseData.is_unnecessary,
-              }
-            ]);
+          const { error } = await supabaseAdmin.from('transactions').insert({
+              user_id: from,
+              item: expenseData.item,
+              amount: expenseData.amount,
+              currency: expenseData.currency,
+              category: expenseData.category,
+              necessity_score: expenseData.necessity_score,
+              is_unnecessary: expenseData.is_unnecessary
+            });
 
           if (error) {
             console.error('Supabase Error:', error);

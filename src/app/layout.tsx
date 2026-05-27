@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
+import Link from "next/link";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -32,9 +33,10 @@ export default function RootLayout({
       lang="en"
       className={`${outfit.variable} font-sans h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#030303]">
+      <body className="min-h-full flex flex-col bg-[#030303] text-white">
         <Navbar />
         <main className="flex-1 mt-16">{children}</main>
+        
         <footer className="w-full border-t border-white/5 bg-black/40 backdrop-blur-xl relative overflow-hidden mt-auto">
           <div className="absolute inset-0 bg-gradient-to-t from-red-900/10 to-transparent pointer-events-none"></div>
           <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
@@ -47,6 +49,10 @@ export default function RootLayout({
                 <p className="text-gray-500 text-sm font-light text-center md:text-left max-w-xs">
                   Stop setting your money on fire. AI-powered financial tracking and insights directly via WhatsApp.
                 </p>
+                <div className="flex items-center gap-4 mt-2">
+                  <Link href="/privacy" className="text-xs text-gray-400 hover:text-white transition-colors">Privacy Policy</Link>
+                  <Link href="/terms" className="text-xs text-gray-400 hover:text-white transition-colors">Terms of Service</Link>
+                </div>
               </div>
               
               <div className="flex flex-col items-center md:items-end gap-1">
@@ -60,13 +66,18 @@ export default function RootLayout({
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-600 mt-4">
+                <p className="text-[10px] text-gray-600 mt-4 max-w-[250px] text-center md:text-right">
+                  We collect account and messaging data strictly to provide expense tracking services. Your data is encrypted and protected by strict database rules.
+                </p>
+                <p className="text-[10px] text-gray-600 mt-1">
                   &copy; {new Date().getFullYear()} Icarus Venture Studio. All rights reserved.
                 </p>
               </div>
 
             </div>
           </div>
+          {/* Extra padding for mobile bottom nav so it doesn't overlap footer */}
+          <div className="h-24 sm:h-0"></div>
         </footer>
       </body>
     </html>
