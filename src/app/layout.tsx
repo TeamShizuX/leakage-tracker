@@ -49,9 +49,13 @@ export default function RootLayout({
                 <p className="text-gray-500 text-sm font-light text-center md:text-left max-w-xs">
                   Stop setting your money on fire. AI-powered financial tracking and insights directly via WhatsApp.
                 </p>
-                <div className="flex items-center gap-4 mt-2">
-                  <Link href="/privacy" className="text-xs text-gray-400 hover:text-white transition-colors">Privacy Policy</Link>
-                  <Link href="/terms" className="text-xs text-gray-400 hover:text-white transition-colors">Terms of Service</Link>
+              </div>
+
+              <div className="flex flex-col items-center gap-3">
+                <h4 className="text-sm font-bold text-white tracking-widest uppercase">Legal</h4>
+                <div className="flex flex-col items-center gap-2">
+                  <Link href="/privacy" className="text-sm text-gray-400 hover:text-red-400 transition-colors">Privacy Policy</Link>
+                  <Link href="/terms" className="text-sm text-gray-400 hover:text-red-400 transition-colors">Terms & Conditions</Link>
                 </div>
               </div>
               
